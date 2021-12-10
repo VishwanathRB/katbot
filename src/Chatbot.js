@@ -3,6 +3,7 @@ import {useCookies} from 'react-cookie';
 import AvailableOptions from './AvailableOptions';
 import LinkList from './LinkList';
 import './Chatbot.css'
+import loadingImage from './typing-loading.gif';
 
 function ChatBot(props){
     const cookies = useCookies(['user'])[0];
@@ -14,7 +15,14 @@ function ChatBot(props){
 
     function getResponse(message) {
         console.log('getRees called')
-        setMessages((messages)=>[...messages,<div className='response-style'>{message}</div>]);
+        const  loading = <img src={loadingImage}></img>;
+        setMessages((messages)=>[...messages,<div className='response-style'>{loading}</div>]);
+        setTimeout(() => {
+            setMessages((messages)=>{
+                messages.pop();
+                return [...messages,<div className='response-style'>{message}</div>]
+            });
+        },500);
     }
 
     function onSend(){
