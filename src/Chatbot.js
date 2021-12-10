@@ -10,7 +10,7 @@ function ChatBot(props){
     const [messages,setMessages] = useState([]);
     useEffect(()=>{
         getInitialMessage();
-    },[])
+    },[cookies])
 
     function getResponse(message) {
         console.log('getRees called')
@@ -26,8 +26,10 @@ function ChatBot(props){
         // getResponse(message);
 
     }
-    
+
     function getInitialMessage(){
+        if(!props.isLoggedIn())
+            return;
         const initialMessage = <div>
             <p>Hello {cookies['user']}</p>
             <p> I am here to help</p>
