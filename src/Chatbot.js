@@ -27,6 +27,31 @@ function ChatBot(props){
 
     }
 
+    function parseMessage(message){
+        const lowerCaseMessage = message.toLowerCase();
+        let isHandled = false;
+        if(lowerCaseMessage.includes('hi') || lowerCaseMessage.includes('hello')){
+            greet();
+            isHandled = true;
+        }
+        if(lowerCaseMessage.includes('weather')){
+            handleWeather();
+            isHandled = true;
+        }
+        if(lowerCaseMessage.includes('javascript')){
+            handleJavascriptLinks();
+            isHandled = true;
+        }
+        if(lowerCaseMessage.includes('date') || lowerCaseMessage.includes('time')){
+            handleTime();
+            isHandled = true;
+        }
+        if(!isHandled){
+            handleUnhandledMessage()
+        }
+        
+    }
+
     function getInitialMessage(){
         if(!props.isLoggedIn())
             return;
@@ -37,6 +62,7 @@ function ChatBot(props){
                 handleWeather = {()=>handleWeather()}
                 handleJavascriptLinks = {()=>handleJavascriptLinks()}
                 handleLoggedUser = {()=>handleLoggedUser()}
+                handleTime ={()=>handleTime()}
              />
         </div>
         getResponse(initialMessage)
@@ -62,30 +88,19 @@ function ChatBot(props){
         getResponse(<p>You are currently logged in as {cookies['user']}</p>)
     }
 
+    function handleTime(){
+        const today = new Date();
+        const date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+        const time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+        const dateTime = date+' '+time;
+
+        getResponse(<p>Date & Time: {dateTime}</p>)
+    }
+
     function handleUnhandledMessage(){
         getResponse(<p>Could not understand your request</p>)
     }
 
-    function parseMessage(message){
-        const lowerCaseMessage = message.toLowerCase();
-        let isHandled = false;
-        if(lowerCaseMessage.includes('hi') || lowerCaseMessage.includes('hello')){
-            greet();
-            isHandled = true;
-        }
-        if(lowerCaseMessage.includes('weather')){
-            handleWeather();
-            isHandled = true;
-        }
-        if(lowerCaseMessage.includes('javascript')){
-            handleJavascriptLinks();
-            isHandled = true;
-        }
-        if(!isHandled){
-            handleUnhandledMessage()
-        }
-        
-    }
 
     return props.isLoggedIn() && <div>
         <div className='message-area'>

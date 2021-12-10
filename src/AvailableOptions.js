@@ -7,7 +7,7 @@ const AvailableOptions = (props) => {
         , id: 1 },
         { text: "Weather", handler: ()=>props.handleWeather(), id: 2 },
         { text: "Logged In User", handler: () => props.handleLoggedUser(), id: 3 },
-        { text: "Security", handler: () => {}, id: 4 },
+        { text: "Time", handler: () => props.handleTime(), id: 4 },
     ]
 
     const optButtons = options.map((option)=>{
