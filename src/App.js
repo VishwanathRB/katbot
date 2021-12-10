@@ -1,25 +1,26 @@
-import logo from './logo.svg';
 import './App.css';
+import {useCookies} from 'react-cookie'; 
+import ChatBot from './Chatbot';
+import LoginPage from './LoginPage';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+  const [cookies,setCookies] = useCookies(['user']);
+
+  const addCookie=(user)=>{
+    setCookies('user', user, {path:'/'});
+  }
+
+  function checkIfLoggedIn(){
+    if(cookies['user'] && cookies['user'] !== ''){
+      return true;
+    }
+    return false;
+  }
+
+  return  <> 
+    <LoginPage addCookie={addCookie} isLoggedIn={checkIfLoggedIn}/>
+    <ChatBot isLoggedIn={checkIfLoggedIn}></ChatBot>
+  </>
 }
 
 export default App;
