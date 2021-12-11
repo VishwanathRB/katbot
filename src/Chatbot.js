@@ -1,9 +1,15 @@
-import React, { useEffect,useState } from 'react';
+import React, { useEffect,useState,useRef } from 'react';
 import {useCookies} from 'react-cookie';
 import AvailableOptions from './AvailableOptions';
 import LinkList from './LinkList';
 import './Chatbot.css'
 import loadingImage from './typing-loading.gif';
+
+const scrollToRef = (ref) => {
+    if(ref && ref.current){
+        ref.current.scrollTop =ref.current.scrollHeight;
+    }
+}  
 
 function ChatBot(props){
     const [disableSend,setDisableSend] = useState(false);
@@ -12,6 +18,7 @@ function ChatBot(props){
     const [messages,setMessages] = useState([]);
 
     const  loading = <div className='response-style'><img src={loadingImage}></img></div>;
+    const myRef = useRef(null);
     useEffect(()=>{
         getInitialMessage();
     },[cookies])
@@ -22,14 +29,15 @@ function ChatBot(props){
     function getResponse(message) {
         setDisableSend(()=>true);
         console.log('getRees called')
-        
         setMessages((messages)=>[...messages,loading]);
+        scrollToRef(myRef);
         setTimeout(() => {
             setMessages((messages)=>{
                 removeLoading(messages);
                 return [...messages,<div className='response-style'>{message}</div>]
             });
             setDisableSend(()=>false);
+            scrollToRef(myRef);
         },500);
     }
 
@@ -146,7 +154,7 @@ function ChatBot(props){
 
 
     return props.isLoggedIn() && <div>
-        <div className='message-area'>
+        <div className='message-area' ref={myRef}>
                 {messages.map((message,index)=>{
                     return <div key={index}>{message}</div>
                 })}
