@@ -6,30 +6,40 @@ import './Chatbot.css'
 import loadingImage from './typing-loading.gif';
 
 function ChatBot(props){
+    const [disableSend,setDisableSend] = useState(false);
     const cookies = useCookies(['user'])[0];
     const [message,setMessage] = useState('');
     const [messages,setMessages] = useState([]);
+
+    const  loading = <div className='response-style'><img src={loadingImage}></img></div>;
     useEffect(()=>{
         getInitialMessage();
     },[cookies])
 
+
+
+
     function getResponse(message) {
+        setDisableSend(()=>true);
         console.log('getRees called')
-        const  loading = <img src={loadingImage}></img>;
-        setMessages((messages)=>[...messages,<div className='response-style'>{loading}</div>]);
+        
+        setMessages((messages)=>[...messages,loading]);
         setTimeout(() => {
             setMessages((messages)=>{
-                messages.pop();
+                removeLoading(messages);
                 return [...messages,<div className='response-style'>{message}</div>]
             });
+            setDisableSend(()=>false);
         },500);
     }
 
     function onSend(){
+        setDisableSend(()=>true);
         const userMessage = <div className="request-style">
             {message}
         </div>
         setMessages((messages)=>[...messages,userMessage]);
+        setMessage(()=>'')
         parseMessage(message);
         // getResponse(message);
 
@@ -50,8 +60,13 @@ function ChatBot(props){
             handleJavascriptLinks();
             isHandled = true;
         }
-        if(lowerCaseMessage.includes('date') || lowerCaseMessage.includes('time')){
+        //if(lowerCaseMessage.includes('date') || lowerCaseMessage.includes('time')){
+        if(checkIfContains(lowerCaseMessage,['date','time'])){
             handleTime();
+            isHandled = true;
+        }
+        if(checkIfContains(lowerCaseMessage,['log','user','name'])){
+            handleLoggedUser();
             isHandled = true;
         }
         if(!isHandled){
@@ -93,7 +108,7 @@ function ChatBot(props){
     }
 
     function handleLoggedUser(){
-        getResponse(<p>You are currently logged in as {cookies['user']}</p>)
+        getResponse(<p>You are currently logged in with username '{cookies['user']}'</p>)
     }
 
     function handleTime(){
@@ -109,6 +124,26 @@ function ChatBot(props){
         getResponse(<p>Could not understand your request</p>)
     }
 
+    function checkIfContains(message, keywords) {
+        let contains = false;
+        keywords.map((keyword)=>{
+            if(message.includes(keyword)){
+                contains = true;
+            }
+        });
+        return contains;
+    }
+
+    function removeLoading(messages){
+        for(let i=0;i<messages.length;i++){
+            if(messages[i] == loading){
+                console.log(messages[i])
+                messages.splice(i,1);
+                break;
+            }
+        }
+    }
+
 
     return props.isLoggedIn() && <div>
         <div className='message-area'>
@@ -119,7 +154,7 @@ function ChatBot(props){
         </div>
         <div className='input-area'>
         <input type='text' value={message} onChange={(event)=>setMessage(event.target.value)}></input>
-        <button onClick={()=>onSend()}>Send</button>
+        <button disabled={disableSend} onClick={()=>onSend()}>Send</button>
         </div>
     </div>
 }
