@@ -5,6 +5,7 @@ import LinkList from './LinkList';
 import './Chatbot.css'
 import loadingImage from './typing-loading.gif';
 
+
 const scrollToRef = (ref) => {
     if(ref && ref.current){
         ref.current.scrollTop =ref.current.scrollHeight;
@@ -12,6 +13,25 @@ const scrollToRef = (ref) => {
 }  
 
 function ChatBot(props){
+    const allKeywords = new Set(['hi','hello','javascript','js', 'weather', 'time', 'date', 'user', 'log', 'name']);
+    const responseHandlers = [
+        greet,
+        handleJavascriptLinks,
+        handleWeather,
+        handleTime,
+        handleLoggedUser,
+        handleUnhandledMessage,
+    ]
+    const keywordsBuckets = [
+        ['hi','hello'],
+        ['js','javascript'],
+        ['weather'],
+        ['time','date'],
+        ['user','name','log']
+    ]
+
+    const keywordsSets = keywordsBuckets.map((bucket)=>(new Set(bucket)))
+
     const [disableSend,setDisableSend] = useState(false);
     const cookies = useCookies(['user'])[0];
     const [message,setMessage] = useState('');
@@ -34,7 +54,7 @@ function ChatBot(props){
         setTimeout(() => {
             setMessages((messages)=>{
                 removeLoading(messages);
-                return [...messages,<div className='response-style'>{message}</div>]
+                return [...messages,<div className='response-style'><div>{message}</div></div>]
             });
             setDisableSend(()=>false);
             scrollToRef(myRef);
@@ -42,10 +62,13 @@ function ChatBot(props){
     }
 
     function onSend(){
+        if(message===''){
+            return;
+        }
         setDisableSend(()=>true);
-        const userMessage = <div className="request-style">
-            {message}
-        </div>
+        const userMessage = <div className="request-style"><div>
+            <p>{message}</p>
+        </div></div>
         setMessages((messages)=>[...messages,userMessage]);
         setMessage(()=>'')
         parseMessage(message);
@@ -55,30 +78,23 @@ function ChatBot(props){
 
     function parseMessage(message){
         const lowerCaseMessage = message.toLowerCase();
-        let isHandled = false;
-        if(lowerCaseMessage.includes('hi') || lowerCaseMessage.includes('hello')){
-            greet();
-            isHandled = true;
+        const tokens = lowerCaseMessage.split(' ');
+        let keyword = '';
+        for(let i=0; i<tokens.length; i++){
+            if(allKeywords.has(tokens[i])){
+                keyword  = tokens[i];
+                break;
+            }
         }
-        if(lowerCaseMessage.includes('weather')){
-            handleWeather();
-            isHandled = true;
-        }
-        if(lowerCaseMessage.includes('javascript')){
-            handleJavascriptLinks();
-            isHandled = true;
-        }
-        //if(lowerCaseMessage.includes('date') || lowerCaseMessage.includes('time')){
-        if(checkIfContains(lowerCaseMessage,['date','time'])){
-            handleTime();
-            isHandled = true;
-        }
-        if(checkIfContains(lowerCaseMessage,['log','user','name'])){
-            handleLoggedUser();
-            isHandled = true;
-        }
-        if(!isHandled){
-            handleUnhandledMessage()
+        if(keyword === ''){
+            handleUnhandledMessage();
+        } else{
+            for(let i=0; i<keywordsSets.length; i++){
+                if(keywordsSets[i].has(keyword)){
+                    responseHandlers[i]();
+                    break;
+                }
+            }
         }
         
     }
@@ -87,14 +103,8 @@ function ChatBot(props){
         if(!props.isLoggedIn())
             return;
         const initialMessage = <div>
-            <p>Hello {cookies['user']}</p>
-            <p> I am here to help</p>
-            <AvailableOptions 
-                handleWeather = {()=>handleWeather()}
-                handleJavascriptLinks = {()=>handleJavascriptLinks()}
-                handleLoggedUser = {()=>handleLoggedUser()}
-                handleTime ={()=>handleTime()}
-             />
+            <p>Hello {cookies['user']},</p>
+            <p> I am here to help.</p>
         </div>
         getResponse(initialMessage)
     }
@@ -129,17 +139,17 @@ function ChatBot(props){
     }
 
     function handleUnhandledMessage(){
-        getResponse(<p>Could not understand your request</p>)
-    }
-
-    function checkIfContains(message, keywords) {
-        let contains = false;
-        keywords.map((keyword)=>{
-            if(message.includes(keyword)){
-                contains = true;
-            }
-        });
-        return contains;
+        getResponse(
+        <div>
+            <p>Could not understand your request.</p>
+            <p>You can ask regarding following topics:</p>
+            <AvailableOptions 
+                handleWeather = {()=>handleWeather()}
+                handleJavascriptLinks = {()=>handleJavascriptLinks()}
+                handleLoggedUser = {()=>handleLoggedUser()}
+                handleTime ={()=>handleTime()}
+             />
+        </div>)
     }
 
     function removeLoading(messages){
